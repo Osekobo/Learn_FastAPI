@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from jsonmap import UserGetRegister, UserPostRegister, Token, UserPostLogin, ProductGetMap, ProductPostMap, PurchaseGetMap, PurchasePostMap, SaleGetMap, SalePostMap, SalesDetails
+from jsonmap import UserGetRegister, UserPostRegister, Token, UserPostLogin, ProductGetMap, ProductPostMap, PurchaseGetMap, PurchasePostMap, SaleGetMap, SalePostMap
 from sqlalchemy.orm import Session
-from models import User, Product, Purchase, Sale
+from models import User, Product, Purchase, Sale, SalesDetails
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from myjwt import (get_db, get_password_hash,
                    verify_password, create_access_token, get_current_user)
@@ -38,21 +39,29 @@ def register(user: UserPostRegister, db: Session = Depends(get_db)):
 
 
 @app.post("/login", response_model=Token)
-def login(user: UserPostLogin, db: Session = Depends(get_db)):
-    db_user = db.scalar(select(User).where(
-        User.email == user.email.lower().strip()))
-    if not db_user or not verify_password(user.password, db_user.password):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    email = form_data.username.lower().strip()
+    db_user = db.scalar(
+        select(User).where(User.email == email)
+    )
+
+    if not db_user or not verify_password(form_data.password, db_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     access_token = create_access_token(
-        data={"sub": db_user.email},
+        data={"sub": db_user.email, "scope": "me items"},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
     return Token(access_token=access_token, token_type="bearer")
+
 
 
 @app.get("/products", response_model=list[ProductGetMap])
@@ -65,7 +74,9 @@ def get_products(
 
 
 @app.post("/products", response_model=ProductGetMap, status_code=201)
-def create_product(product: ProductPostMap, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_product(product: ProductPostMap, db: Session = Depends(get_db),
+                       current_user: User = Depends(get_current_user)
+                   ):
     model = Product(**product.model_dump())
     db.add(model)
     db.commit()
@@ -121,7 +132,7 @@ def create_sale(
         product = db.get(Product, item.product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        
+
         model.details.append(
             SalesDetails(
                 product_id=item.product_id,

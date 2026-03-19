@@ -1,13 +1,7 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from sqlalchemy import Integer, create_engine, String
-
-DATABASE_URL = "postgresql://postgres:12039@localhost:5432/fast_api"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, relationship
+from sqlalchemy import Integer, create_engine, String, Float, DateTime, ForeignKey
+from typing import List
+from datetime import datetime
 
 
 class Base(DeclarativeBase):
@@ -18,6 +12,18 @@ class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(256), nullable=False)
+    phone: Mapped[str] = mapped_column(
+        String(256), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(256), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(
+        String(256), nullable=False)  # hashed password
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    purchases: Mapped[List["Purchase"]] = relationship()
+    sales: Mapped[List["Sale"]] = relationship()
 
 
 class Product(Base):
@@ -44,3 +50,77 @@ class Product(Base):
         back_populates="product",
         cascade="all, delete-orphan"
     )
+
+
+class Purchase(Base):
+    __tablename__ = "purchases"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    user: Mapped["User"] = relationship()
+    # Relationship to Product
+    product: Mapped["Product"] = relationship(back_populates="purchases")
+
+
+class Sale(Base):
+    __tablename__ = "sales"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    user: Mapped["User"] = relationship()
+    # Relationship with SalesDetails
+    details: Mapped[List["SalesDetails"]] = relationship(
+        back_populates="sale",
+        cascade="all, delete-orphan"
+    )
+
+
+class SalesDetails(Base):
+    __tablename__ = "sales_details"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sale_id: Mapped[int] = mapped_column(
+        ForeignKey("sales.id"), nullable=False
+    )
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id"), nullable=False
+    )
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    sale: Mapped["Sale"] = relationship(back_populates="details")
+    product: Mapped["Product"] = relationship()
+
+
+DATABASE_URL = "postgresql://postgres:12039@localhost:5432/fast_api"
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+Base.metadata.create_all(bind=engine)
+
+# remove create_all

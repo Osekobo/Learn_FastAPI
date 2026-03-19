@@ -1,11 +1,27 @@
-from models import SessionLocal
+from models import SessionLocal, User
 from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
+from fastapi.security import SecurityScopes, OAuth2PasswordBearer
 import jwt
+from jsonmap import TokenData
+from jwt.exceptions import InvalidTokenError
+from pydantic import ValidationError
+from sqlalchemy import select
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="login",
+    scopes={
+        "me": "Read information about the current user",
+        "items": "Read items",
+    },
+)
 
 
 def get_db():
@@ -23,6 +39,10 @@ def get_password_hash(password: str):
 
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.scalar(select(User).where(User.email == email))
 
 # create access token
 
@@ -60,11 +80,11 @@ async def get_current_user(
         scope_str: str = payload.get("scope", "")
         token_scopes = scope_str.split()
 
-        token_data = TokenData(username=email, scopes=token_scopes)
+        token_data = TokenData(email=email, scopes=token_scopes)
     except (InvalidTokenError, ValidationError):
         raise credentials_exception
 
-    user = get_user_by_email(db, token_data.username)
+    user = get_user_by_email(db, token_data.email)
     if user is None:
         raise credentials_exception
 
@@ -75,5 +95,8 @@ async def get_current_user(
                 detail="Not enough permissions",
                 headers={"WWW-Authenticate": authenticate_value},
             )
+    # print("Token Scopes:", token_data.scopes)
+    # print("Required Scopes:", security_scopes.scopes)
 
     return user
+    

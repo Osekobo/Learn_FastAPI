@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
 
 class UserGetRegister(BaseModel):
@@ -38,3 +39,41 @@ class ProductPostMap(BaseModel):
 
 class ProductGetMap(ProductPostMap):
     id: int
+
+
+class PurchasePostMap(BaseModel):
+    product_id: int
+    quantity: float
+
+
+class PurchaseGetMap(PurchasePostMap):
+    id: int
+    quantity: float
+    product_id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class SaleDetailsItem(BaseModel):
+    product_id: int
+    quantity: float
+
+
+class SaleDetailsItem(BaseModel):
+    product_id: int
+    quantity: float
+
+
+class SalePostMap(BaseModel):
+    details: list[SaleDetailsItem]
+
+
+class SaleGetMap(SalePostMap):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class TokenData(BaseModel):
+    email: str | None = None
+    scopes: list[str] = []
