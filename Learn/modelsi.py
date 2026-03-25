@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy import Integer, create_engine, String, DateTime
 from datetime import datetime
@@ -28,3 +29,6 @@ SessionLocal = sessionmaker(autocommit=False,
                             autoflush=False,
                             bind=engine)
 Base.metadata.create_all(bind=engine)
+=======
+
+>>>>>>> e4bfbbe768b4820d723c9bf7dfc170dfe1b4d4c9
