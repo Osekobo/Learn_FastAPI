@@ -82,6 +82,7 @@ def create_product(product: ProductPostMap, db: Session = Depends(get_db),
     db.commit()
     db.refresh(model)
     return model
+# Request JSON → Pydantic validation → Auth dependency → ORM object → db.add → commit → refresh → Response schema → JSON
 
 
 @app.get("/purchase", response_model=list[PurchaseGetMap])
