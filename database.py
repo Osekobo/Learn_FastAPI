@@ -14,4 +14,9 @@ Base = declarative_base()
 #   "email": "john@example.com",
 #   "password": "secret123"
 # }
-
+# {
+#   "name": "John Doe",
+#   "phone": "+254712345678",
+#   "email": "johndoe@example.com",
+#   "password": "SecurePass123!"
+# }

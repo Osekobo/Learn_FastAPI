@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from fastapi.security import SecurityScopes, OAuth2PasswordBearer
 import jwt
-from schemas import TokenData
+# from schemas import TokenData
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlalchemy import select
