@@ -7,6 +7,8 @@ engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+# Base.metadata.create_all(bind=engine)
+# Base.metadata.drop_all(bind=engine)
 
 # {
 #   "name": "John Doe",
