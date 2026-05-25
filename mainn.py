@@ -19,8 +19,8 @@ def home():
 def register(user: UserPostRegister, db: Session = Depends(get_db)):
     if db.scalar(select(User).where(User.email == user.email)):
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = User(name=User.name, phone=User.phone,
-                    email=User.email, password=get_password_hash(User.password))
+    new_user = User(name=user.name, phone=user.phone,
+                    email=user.email, password=get_password_hash(user.password))
     try:
         db.add(new_user)
         db.commit()
@@ -28,16 +28,26 @@ def register(user: UserPostRegister, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
         raise HTTPException(status_code=400, detail="User registration failed")
-    return new_user
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=timedelta(minutes=ACCESS))
+    return {
+        "id": new_user.id,
+        "name": new_user.name,
+        "phone": new_user.phone,
+        "email": new_user.email,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
 @app.post("/login", response_model=UserGetLogin)
 def login(data: UserPostLogin, db: Session = Depends(get_db)):
-    email = data.user.email.lower().strip()
+    email = data.email.lower().strip()
     user = db.scalar(select(User).where(User.email == email))
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid email or password")
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=timedelta(minutes=ACCESS))
-    return UserGetLogin(access_token=access_token, token_type="bearer")
+    # return UserGetLogin(access_token=access_token, token_type="bearer")
+    return {"access_token": access_token, "token_type": "bearer"}

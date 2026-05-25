@@ -15,6 +15,7 @@ class UserPostRegister(BaseModel):
     phone: str
     email: EmailStr
     password: str
+    
 
 
 class UserGetLogin(BaseModel):
