@@ -1,5 +1,6 @@
 from models import User
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from schemas import UserGetRegister, UserPostLogin, UserGetLogin, UserPostRegister
 from utils import (get_db, verify_password,
                    get_password_hash, create_access_token)
@@ -8,6 +9,13 @@ from sqlalchemy import select
 from datetime import timedelta
 ACCESS = 30
 app = FastAPI()
+
+origins = ["*"]
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins,
+                   allow_credentials=True,
+                   allow_methods=["*"],
+                   allow_headers=["*"],)
 
 
 @app.get("/")
