@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import date
 
 
 class UserGetRegister(BaseModel):
@@ -15,7 +16,6 @@ class UserPostRegister(BaseModel):
     phone: str
     email: EmailStr
     password: str
-    
 
 
 class UserGetLogin(BaseModel):
@@ -26,3 +26,20 @@ class UserGetLogin(BaseModel):
 class UserPostLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class GetForm(BaseModel):
+    id: int
+    name: str
+    price: int
+    category: str
+    date: date
+    income: str
+
+
+class PostForm(BaseModel):
+    name: str
+    price: int
+    category: str
+    date: date
+    income: str

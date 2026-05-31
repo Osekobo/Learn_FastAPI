@@ -12,7 +12,7 @@ app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"Version": "1"}
+    return {"Version": "1.0"}
 
 
 @app.post("/register", response_model=UserGetRegister, status_code=201)
