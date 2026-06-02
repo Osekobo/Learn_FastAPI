@@ -2,7 +2,7 @@ from models import User, Form
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 # GetItem, PostItem, GetList, PostList
-from schemas import UserGetRegister, UserPostLogin, UserGetLogin, UserPostRegister, GetForm, PostForm
+from schemas import UserGetRegister, UserPostLogin, UserGetLogin, UserPostRegister, GetForm, PostForm, GetExpenseSchema
 from utils import (get_db, verify_password,
                    get_password_hash, create_access_token)
 from sqlalchemy.orm import Session
@@ -16,12 +16,17 @@ Base.metadata.create_all(bind=engine)
 ACCESS = 30
 app = FastAPI()
 
-origins = ["*"]
-app.add_middleware(CORSMiddleware,
-                   allow_origins=origins,
-                   allow_credentials=True,
-                   allow_methods=["*"],
-                   allow_headers=["*"],)
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
@@ -100,3 +105,9 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     db.delete(expense)
     db.commit()
     return {"messagw": "Expense deleted successfully"}
+
+
+@app.put("/expenseform/{id}")
+def update_expense(id: int, expense: GetExpenseSchema):
+    # update logic here
+    return {"message": "updated"}

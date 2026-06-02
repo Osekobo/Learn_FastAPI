@@ -43,3 +43,15 @@ class PostForm(BaseModel):
     category: str
     date: date
     income: str
+
+
+class GetExpenseSchema(BaseModel):
+    name: str
+    price: int
+    category: str
+    date: date
+    income: str
+
+
+class PostExpenseSchema(BaseModel):
+    pass
